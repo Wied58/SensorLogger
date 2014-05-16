@@ -66,7 +66,7 @@ void setup() {
  PORTC |= (1 << 5);
 
   Wire.begin();
-  Serial2.begin(9600); //9600 changed 'cos of timing?
+  Serial2.begin(57600); //9600 changed 'cos of timing?
   delay(1000); //Give the open log a second to get in gear. 
   initial(pressure);
   
