@@ -1,18 +1,11 @@
  
-/*
-  Initial version from Jeff Wiedemann's code of May 2014.
-  Written for Teensy 3.0.
-  See file "pressure_and_accel_and_mag_4_w_gps_4.ino.ref".
-  
-  Modified to use a separate Teensy version of the HMC5883L library
-  incorporating minor changes as used by Jeff.
-*/
+
 
 
 #include <Wire.h>
 #include <math.h>
 #include <ADXL345.h>
-#include <HMC5883L_T.h>
+#include <HMC5883L.h>
 
 ADXL345 adxl; //variable adxl is an instance of the ADXL345 library
 #define pressure 0x76 //0x77
@@ -38,16 +31,6 @@ float Pressure;
 int Ax,Ay,Az;  
 double Axg, Ayg, Azg;
 
-int inputpin0 = 14;
-int inputpin1 = 15;
-int inputpin2 = 16;
-int inputpin3 = 17;
-
-int input0val = 0;
-int input1val = 0;
-int input2val = 0;
-int input3val = 0;
-
 
 // Store our compass as a variable.
 HMC5883L compass;
@@ -66,7 +49,7 @@ void setup() {
  PORTC |= (1 << 5);
 
   Wire.begin();
-  Serial2.begin(9600); //9600 changed 'cos of timing?
+  Serial.begin(9600); //9600 changed 'cos of timing?
   delay(1000); //Give the open log a second to get in gear. 
   initial(pressure);
   
@@ -74,41 +57,36 @@ void setup() {
   
 //Cliped from H5883L example
   
-Serial2.println("Constructing new HMC5883L");
+Serial.println("Constructing new HMC5883L");
   compass = HMC5883L(); // Construct a new HMC5883 compass.
     
-  Serial2.println("Setting scale to +/- 1.3 Ga");
+  Serial.println("Setting scale to +/- 1.3 Ga");
   error = compass.SetScale(1.3); // Set the scale of the compass.
   if(error != 0) // If there is an error, print it out.
-    Serial2.println(compass.GetErrorText(error));
+    Serial.println(compass.GetErrorText(error));
   
-  Serial2.println("Setting measurement mode to continous.");
+  Serial.println("Setting measurement mode to continous.");
   error = compass.SetMeasurementMode(Measurement_Continuous); // Set the measurement mode to Continuous
   if(error != 0) // If there is an error, print it out.
-    Serial2.println(compass.GetErrorText(error));
+    Serial.println(compass.GetErrorText(error));
 
 Serial1.begin(57600);
 Serial1.println("$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28");
    for (int noodle = 1; noodle < 10; noodle++);
-   
-  pinMode(inputpin0, INPUT);
-  pinMode(inputpin1, INPUT);
-  pinMode(inputpin2, INPUT);
-  pinMode(inputpin3, INPUT);
 
 }
 
 void loop()
 {
   if (Serial1.available()) { //gps stuff 1
-//    Serial2.write(Serial1.read());
+//    Serial.write(Serial1.read());
  char gps_byte =Serial1.read();
- Serial2.print(gps_byte);
+ Serial.print(gps_byte);
  if (gps_byte == 10){ //gps stuff 2
       line_count++;
-    //  Serial2.println(line_count);   
+    //  Serial.println(line_count);   
    if (line_count == 2){ //gps stuff 3
-   // Serial2.println(line_count);
+   // Serial.println(line_count);
 
 count = count + 1;
 
@@ -180,15 +158,6 @@ count = count + 1;
   Pressure = (float)P / 100;
   
 /*******************************************************************************/
-/**************                 SWITCHES                  **********************/
-/*******************************************************************************/
-
-input0val = digitalRead(inputpin0);
-input1val = digitalRead(inputpin1);
-input2val = digitalRead(inputpin2);
-input3val = digitalRead(inputpin3);
-  
-/*******************************************************************************/
 /**************                 MAGNETOMETER              **********************/
 /*******************************************************************************/
   // Retrive the raw values from the compass (not scaled).
@@ -247,83 +216,71 @@ void Output(MagnetometerRaw raw, MagnetometerScaled scaled, float heading, float
 /*******************************************************************************/
 /**************                  OUTPUT                   **********************/
 /*******************************************************************************/
-   Serial2.print("$FHMAG");
-   Serial2.print(",");
-   Serial2.print(count);
-   Serial2.print(",");
-   Serial2.print(headingDegrees);
-   Serial2.print(",");
-   Serial2.print(heading);
-   Serial2.print(",");
-   Serial2.print(raw.XAxis);
-   Serial2.print(",");   
-   Serial2.print(raw.YAxis);
-   Serial2.print(",");   
-   Serial2.print(raw.ZAxis);
-   Serial2.print(",");
-   Serial2.print(scaled.XAxis);
-   Serial2.print(",");
-   Serial2.print(scaled.YAxis);
-   Serial2.print(","); 
-   Serial2.println(scaled.ZAxis);
+   Serial.print("$FHMAG");
+   Serial.print(",");
+   Serial.print(count);
+   Serial.print(",");
+   Serial.print(headingDegrees);
+   Serial.print(",");
+   Serial.print(heading);
+   Serial.print(",");
+   Serial.print(raw.XAxis);
+   Serial.print(",");   
+   Serial.print(raw.YAxis);
+   Serial.print(",");   
+   Serial.print(raw.ZAxis);
+   Serial.print(",");
+   Serial.print(scaled.XAxis);
+   Serial.print(",");
+   Serial.print(scaled.YAxis);
+   Serial.print(","); 
+   Serial.println(scaled.ZAxis);
 
   
 
 
-  Serial2.print("$FHPRS");
-  Serial2.print(",");
-  Serial2.print(count);
-  Serial2.print(",");
-  Serial2.print(Temperature);
-  Serial2.print(",");
-  Serial2.print(Pressure);
-  Serial2.print(",");
-  Serial2.print(D2);
-  Serial2.print(",");
-  Serial2.print(D1);
-  Serial2.print(",");
-  Serial2.print(dT);
-  Serial2.print(",");
-  Serial2.print(SENS);
-  Serial2.print(",");
-  Serial2.print(OFF/100);
-  Serial2.print(",");
-  Serial2.print(T2);
-  Serial2.print(",");
-  Serial2.print(SENS2);
-  Serial2.print(",");
-  Serial2.println(OFF2/100);
+  Serial.print("$FHPRS");
+  Serial.print(",");
+  Serial.print(count);
+  Serial.print(",");
+  Serial.print(Temperature);
+  Serial.print(",");
+  Serial.print(Pressure);
+  Serial.print(",");
+  Serial.print(D2);
+  Serial.print(",");
+  Serial.print(D1);
+  Serial.print(",");
+  Serial.print(dT);
+  Serial.print(",");
+  Serial.print(SENS);
+  Serial.print(",");
+  Serial.print(OFF/100);
+  Serial.print(",");
+  Serial.print(T2);
+  Serial.print(",");
+  Serial.print(SENS2);
+  Serial.print(",");
+  Serial.println(OFF2/100);
   
   
   
-  Serial2.print("$FHACC");
-  Serial2.print(",");
-  Serial2.print(count);
-  Serial2.print(",");
-  Serial2.print((float)Axg,2);
-  Serial2.print(",");
-  Serial2.print((float)Ayg,2);
-  Serial2.print(",");
-  Serial2.print((float)Azg,2);
-  Serial2.print(",");
-  Serial2.print(Ax);
-  Serial2.print(",");
-  Serial2.print(Ay);
-  Serial2.print(",");
-  Serial2.println(Az);
-   
-  
-  Serial2.print("$FHSWP");
-  Serial2.print(",");
-  Serial2.print(input0val);
-  Serial2.print(",");
-  Serial2.print(input1val);
-  Serial2.print(",");
-  Serial2.print(input2val);
-  Serial2.print(",");
-  Serial2.println(input3val);
-  Serial2.println(); 
-  
+  Serial.print("$FHACC");
+  Serial.print(",");
+  Serial.print(count);
+  Serial.print(",");
+  Serial.print((float)Axg,2);
+  Serial.print(",");
+  Serial.print((float)Ayg,2);
+  Serial.print(",");
+  Serial.print((float)Azg,2);
+  Serial.print(",");
+  Serial.print(Ax);
+  Serial.print(",");
+  Serial.print(Ay);
+  Serial.print(",");
+  Serial.println(Az);
+  Serial.println();  
   
   
   
@@ -365,8 +322,8 @@ long getVal(int address, byte code)
 void initial(uint8_t address)
 {
 
-  Serial2.println();
-  Serial2.println("PRESSURE SENSOR PROM COEFFICIENTS");
+  Serial.println();
+  Serial.println("PRESSURE SENSOR PROM COEFFICIENTS");
 
   Wire.beginTransmission(address);
   Wire.write(0x1E); // reset
@@ -388,9 +345,9 @@ void initial(uint8_t address)
        C[i+1] = Wire.read() << 8 | Wire.read();
     }
     else {
-      Serial2.println("Error reading PROM 1"); // error reading the PROM or communicating with the device
+      Serial.println("Error reading PROM 1"); // error reading the PROM or communicating with the device
     }
-    Serial2.println(C[i+1]);
+    Serial.println(C[i+1]);
   }
-  Serial2.println();
+  Serial.println();
 }
